@@ -40,8 +40,38 @@ public class FileUtilities {
     }
 
     public static File getFileDirectory(Context context) {
+        String storageType = StorageType.INTERNAL;
+
         // refactor to have one central point to access external file directory
-        return context.getFilesDir();
+        if (storageType.equals(StorageType.INTERNAL)) {
+            // context.getFilesDir() gets internal storage only
+            return context.getFilesDir();
+        } else {
+            // if external is available...use it
+            if (isExternalStorageAvailable()) {
+                if (storageType.equals(StorageType.PRIVATE_EXTERNAL)) {
+                    // private external storage returned
+                    return context.getExternalFilesDir(null);
+                } else {
+                    // assuming it's PUBLIC_EXTERNAL then
+                    return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+                }
+            } else {
+                // else simply use internal storage
+                return context.getFilesDir();
+            }
+        }
+    }
+
+    public static boolean isExternalStorageAvailable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            // external storage available
+            return true;
+        }
+
+        // external storage NOT available
+        return false;
     }
 
     private static void copyFile(InputStream in, OutputStream out) throws IOException {
