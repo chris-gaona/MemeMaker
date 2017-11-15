@@ -40,7 +40,9 @@ public class FileUtilities {
     }
 
     public static File getFileDirectory(Context context) {
-        String storageType = StorageType.INTERNAL;
+        // use shared preferences to determine storage type to use
+        MemeMakerApplicationSettings settings = new MemeMakerApplicationSettings(context);
+        String storageType = settings.getStoragePreference();
 
         // refactor to have one central point to access external file directory
         if (storageType.equals(StorageType.INTERNAL)) {
