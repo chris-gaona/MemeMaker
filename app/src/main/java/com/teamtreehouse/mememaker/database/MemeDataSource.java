@@ -32,7 +32,9 @@ public class MemeDataSource {
     }
 
     public ArrayList<Meme> read() {
-        return null;
+        ArrayList<Meme> memes = readMemes();
+        addMemeAnnotation(memes);
+        return memes;
     }
 
     public ArrayList<Meme> readMemes() {
