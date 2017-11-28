@@ -10,6 +10,7 @@ import com.teamtreehouse.mememaker.models.Meme;
 import com.teamtreehouse.mememaker.models.MemeAnnotation;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 public class MemeDataSource {
 
@@ -64,7 +65,7 @@ public class MemeDataSource {
                 null, // selectionArgs
                 null, // groupBy
                 null, // having
-                null); // orderBy
+                MemeSQLiteHelper.COLUMN_MEME_CREATE_DATE + " DESC"); // orderBy
 
         ArrayList<Meme> memes = new ArrayList<Meme>();
         if (cursor.moveToFirst()) {
@@ -166,6 +167,7 @@ public class MemeDataSource {
         ContentValues memeValues = new ContentValues();
         memeValues.put(MemeSQLiteHelper.COLUMN_MEME_NAME, meme.getName());
         memeValues.put(MemeSQLiteHelper.COLUMN_MEME_ASSET, meme.getAssetLocation());
+        memeValues.put(MemeSQLiteHelper.COLUMN_MEME_CREATE_DATE, new Date().getTime());
         long memID = database.insert(MemeSQLiteHelper.MEMES_TABLE, null, memeValues);
 
         for (MemeAnnotation annotation : meme.getAnnotations()) {
