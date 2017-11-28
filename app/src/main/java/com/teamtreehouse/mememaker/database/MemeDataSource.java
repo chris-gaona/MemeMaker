@@ -31,6 +31,23 @@ public class MemeDataSource {
         database.close();
     }
 
+    public void delete(int memeId) {
+        SQLiteDatabase database = open();
+        database.beginTransaction();
+
+        // delete annotations first since it has a foreign reference
+        database.delete(MemeSQLiteHelper.ANNOTATIONS_TABLE,
+                String.format("%s=%s", MemeSQLiteHelper.COLUMN_FOREIGN_KEY_MEME, String.valueOf(memeId)),
+                null);
+
+        database.delete(MemeSQLiteHelper.MEMES_TABLE,
+                String.format("%s=%s", BaseColumns._ID, String.valueOf(memeId)),
+                null);
+
+        database.setTransactionSuccessful();
+        database.endTransaction();
+    }
+
     public ArrayList<Meme> read() {
         ArrayList<Meme> memes = readMemes();
         addMemeAnnotation(memes);
@@ -92,6 +109,41 @@ public class MemeDataSource {
         }
 
         database.close();
+    }
+
+    public void update(Meme meme) {
+        SQLiteDatabase database = open();
+        database.beginTransaction();
+
+        ContentValues updateMemeValues = new ContentValues();
+        updateMemeValues.put(MemeSQLiteHelper.COLUMN_MEME_NAME, meme.getName());
+        database.update(MemeSQLiteHelper.MEMES_TABLE,
+                updateMemeValues,
+                String.format("%s=%d", BaseColumns._ID, meme.getId()), null);
+
+        for (MemeAnnotation annotation : meme.getAnnotations()) {
+            ContentValues updateAnnotations = new ContentValues();
+            updateAnnotations.put(MemeSQLiteHelper.COLUMN_ANNOTATION_TITLE, annotation.getTitle());
+            updateAnnotations.put(MemeSQLiteHelper.COLUMN_ANNOTATION_X, annotation.getLocationX());
+            updateAnnotations.put(MemeSQLiteHelper.COLUMN_ANNOTATION_Y, annotation.getLocationY());
+            updateAnnotations.put(MemeSQLiteHelper.COLUMN_FOREIGN_KEY_MEME, meme.getId());
+            updateAnnotations.put(MemeSQLiteHelper.COLUMN_ANNOTATION_COLOR, annotation.getColor());
+
+            if (annotation.hasBeenSaved()) {
+                database.update(MemeSQLiteHelper.ANNOTATIONS_TABLE,
+                        updateAnnotations,
+                        String.format("%s=%d", BaseColumns._ID, annotation.getId()),
+                        null);
+            } else {
+                database.insert(MemeSQLiteHelper.ANNOTATIONS_TABLE,
+                        null,
+                        updateAnnotations);
+            }
+        }
+
+        database.setTransactionSuccessful();
+        database.endTransaction();
+        close(database);
     }
 
     private int getIntFromColumnName(Cursor cursor, String columnName) {
